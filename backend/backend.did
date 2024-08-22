@@ -15,8 +15,20 @@ type GroceryItem =
    id: nat;
    name: text;
  };
+type CategoryItem = 
+ record {
+   emoji: text;
+   id: nat;
+   name: text;
+ };
+type Category = 
+ record {
+   items: vec CategoryItem;
+   name: text;
+ };
 service : {
-  addItem: (text, text) -> (Result_1);
-  getItems: () -> (vec GroceryItem);
+  addItem: (text, text, opt nat) -> (Result_1);
+  getCategories: () -> (vec Category) query;
+  getItems: () -> (vec GroceryItem) query;
   toggleItemCompletion: (nat) -> (Result);
 }
