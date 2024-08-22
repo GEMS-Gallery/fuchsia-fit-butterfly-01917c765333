@@ -9,7 +9,7 @@ export const idlFactory = ({ IDL }) => {
   const Result = IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text });
   return IDL.Service({
     'addItem' : IDL.Func([IDL.Text, IDL.Text], [Result_1], []),
-    'getItems' : IDL.Func([], [IDL.Vec(GroceryItem)], ['query']),
+    'getItems' : IDL.Func([], [IDL.Vec(GroceryItem)], []),
     'toggleItemCompletion' : IDL.Func([IDL.Nat], [Result], []),
   });
 };

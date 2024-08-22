@@ -18,7 +18,16 @@ actor {
   };
 
   stable var nextId: Nat = 0;
+  stable var needsInitialization : Bool = true;
   let groceryList = HashMap.HashMap<Nat, GroceryItem>(10, Nat.equal, Hash.hash);
+
+  let commonItems = [
+    { name = "Apple"; emoji = "🍎" },
+    { name = "Banana"; emoji = "🍌" },
+    { name = "Milk"; emoji = "🥛" },
+    { name = "Bread"; emoji = "🍞" },
+    { name = "Eggs"; emoji = "🥚" }
+  ];
 
   public func addItem(name: Text, emoji: Text) : async Result.Result<Nat, Text> {
     let id = nextId;
@@ -51,7 +60,19 @@ actor {
     }
   };
 
-  public query func getItems() : async [GroceryItem] {
+  public func getItems() : async [GroceryItem] {
+    if (needsInitialization) {
+      await initializeGroceryList();
+      needsInitialization := false;
+    };
     Iter.toArray(Iter.map(groceryList.entries(), func (entry : (Nat, GroceryItem)) : GroceryItem { entry.1 }))
+  };
+
+  private func initializeGroceryList() : async () {
+    if (groceryList.size() == 0) {
+      for (item in commonItems.vals()) {
+        ignore await addItem(item.name, item.emoji);
+      };
+    };
   };
 }

@@ -17,6 +17,6 @@ type GroceryItem =
  };
 service : {
   addItem: (text, text) -> (Result_1);
-  getItems: () -> (vec GroceryItem) query;
+  getItems: () -> (vec GroceryItem);
   toggleItemCompletion: (nat) -> (Result);
 }
