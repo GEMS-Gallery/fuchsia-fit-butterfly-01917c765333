@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { backend } from 'declarations/backend';
-import { Container, Typography, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, TextField, Button, Box, Grid, Paper } from '@mui/material';
-import { Add as AddIcon, Check as CheckIcon } from '@mui/icons-material';
+import { Container, Typography, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, TextField, Button, Box, Grid, Paper, CircularProgress } from '@mui/material';
+import { Add as AddIcon, Check as CheckIcon, ShoppingCart as ShoppingCartIcon } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 
 type GroceryItem = {
@@ -92,9 +92,12 @@ const App: React.FC = () => {
 
   return (
     <Container maxWidth="md">
-      <Typography variant="h4" component="h1" gutterBottom>
-        Grocery List
-      </Typography>
+      <Box display="flex" alignItems="center" mb={2}>
+        <ShoppingCartIcon sx={{ mr: 1 }} />
+        <Typography variant="h4" component="h1">
+          Grocery List
+        </Typography>
+      </Box>
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
@@ -178,7 +181,9 @@ const App: React.FC = () => {
               Your Grocery List
             </Typography>
             {loading ? (
-              <Typography>Loading...</Typography>
+              <Box display="flex" justifyContent="center" alignItems="center" height={200}>
+                <CircularProgress />
+              </Box>
             ) : (
               <List>
                 {items.map((item) => (
