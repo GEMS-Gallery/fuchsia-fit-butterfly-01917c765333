@@ -13,13 +13,14 @@ export interface GroceryItem {
   'name' : string,
   'completed' : boolean,
   'emoji' : string,
+  'quantity' : bigint,
 }
 export type Result = { 'ok' : null } |
   { 'err' : string };
 export type Result_1 = { 'ok' : bigint } |
   { 'err' : string };
 export interface _SERVICE {
-  'addItem' : ActorMethod<[string, string, [] | [bigint]], Result_1>,
+  'addItem' : ActorMethod<[string, string, bigint, [] | [bigint]], Result_1>,
   'getCategories' : ActorMethod<[], Array<Category>>,
   'getItems' : ActorMethod<[], Array<GroceryItem>>,
   'toggleItemCompletion' : ActorMethod<[bigint], Result>,

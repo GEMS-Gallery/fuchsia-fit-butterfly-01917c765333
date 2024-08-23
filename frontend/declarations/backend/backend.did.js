@@ -14,11 +14,12 @@ export const idlFactory = ({ IDL }) => {
     'name' : IDL.Text,
     'completed' : IDL.Bool,
     'emoji' : IDL.Text,
+    'quantity' : IDL.Nat,
   });
   const Result = IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text });
   return IDL.Service({
     'addItem' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Opt(IDL.Nat)],
+        [IDL.Text, IDL.Text, IDL.Nat, IDL.Opt(IDL.Nat)],
         [Result_1],
         [],
       ),
