@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { backend } from 'declarations/backend';
-import { Container, Typography, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, TextField, Button, Box, Grid, Paper, CircularProgress, AppBar, Toolbar, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, ToggleButtonGroup, ToggleButton, Badge } from '@mui/material';
+import { Container, Typography, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, TextField, Button, Box, Grid, Paper, CircularProgress, AppBar, Toolbar, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, ToggleButtonGroup, ToggleButton, Badge, Alert } from '@mui/material';
 import { Add as AddIcon, Check as CheckIcon, Delete as DeleteIcon, ShoppingCart as ShoppingCartIcon, ViewList as ViewListIcon, ViewModule as ViewModuleIcon, Apps as AppsIcon } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import { styled } from '@mui/system';
@@ -185,6 +185,7 @@ const App: React.FC = () => {
   const [openAddItemDialog, setOpenAddItemDialog] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const [viewType, setViewType] = useState<ViewType>('grid');
 
   const fetchItems = async () => {
@@ -194,6 +195,7 @@ const App: React.FC = () => {
     } catch (error) {
       console.error('Error fetching items:', error);
       setSnackbarMessage('Error fetching items. Please try again.');
+      setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
       setLoading(false);
@@ -207,6 +209,7 @@ const App: React.FC = () => {
     } catch (error) {
       console.error('Error fetching categories:', error);
       setSnackbarMessage('Error fetching categories. Please try again.');
+      setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
   };
@@ -222,10 +225,12 @@ const App: React.FC = () => {
       await backend.addItem(data.name, data.emoji, []);
       await fetchItems();
       setSnackbarMessage('Item added successfully');
+      setSnackbarSeverity('success');
       setSnackbarOpen(true);
     } catch (error) {
       console.error('Error adding item:', error);
       setSnackbarMessage('Error adding item. Please try again.');
+      setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
       setLoading(false);
@@ -240,6 +245,7 @@ const App: React.FC = () => {
     } catch (error) {
       console.error('Error toggling item completion:', error);
       setSnackbarMessage('Error updating item. Please try again.');
+      setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
       setLoading(false);
@@ -252,10 +258,12 @@ const App: React.FC = () => {
       await backend.addItem(item.name, item.emoji, [item.id]);
       await fetchItems();
       setSnackbarMessage('Item added successfully');
+      setSnackbarSeverity('success');
       setSnackbarOpen(true);
     } catch (error) {
       console.error('Error adding item from category:', error);
       setSnackbarMessage('Error adding item. Please try again.');
+      setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
       setLoading(false);
@@ -268,10 +276,12 @@ const App: React.FC = () => {
       await backend.removeItem(id);
       await fetchItems();
       setSnackbarMessage('Item removed successfully');
+      setSnackbarSeverity('success');
       setSnackbarOpen(true);
     } catch (error) {
       console.error('Error removing item:', error);
       setSnackbarMessage('Error removing item. Please try again.');
+      setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
       setLoading(false);
@@ -385,8 +395,12 @@ const App: React.FC = () => {
         open={snackbarOpen}
         autoHideDuration={3000}
         onClose={() => setSnackbarOpen(false)}
-        message={snackbarMessage}
-      />
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </>
   );
 };
