@@ -15,7 +15,6 @@ actor {
     name: Text;
     emoji: Text;
     completed: Bool;
-    quantity: Nat;
   };
 
   type CategoryItem = {
@@ -121,7 +120,7 @@ actor {
     }
   ];
 
-  public func addItem(name: Text, emoji: Text, quantity: Nat, id: ?Nat) : async Result.Result<Nat, Text> {
+  public func addItem(name: Text, emoji: Text, id: ?Nat) : async Result.Result<Nat, Text> {
     let itemId = switch (id) {
       case (null) { nextId };
       case (?existingId) { existingId };
@@ -132,7 +131,6 @@ actor {
       name = name;
       emoji = emoji;
       completed = false;
-      quantity = quantity;
     };
     groceryList.put(itemId, item);
     #ok(itemId)
@@ -149,7 +147,6 @@ actor {
           name = item.name;
           emoji = item.emoji;
           completed = not item.completed;
-          quantity = item.quantity;
         };
         groceryList.put(id, updatedItem);
         #ok()
@@ -169,7 +166,7 @@ actor {
     if (groceryList.size() == 0) {
       for (category in categories.vals()) {
         for (item in category.items.vals()) {
-          ignore await addItem(item.name, item.emoji, 1, ?item.id);
+          ignore await addItem(item.name, item.emoji, ?item.id);
         };
       };
     };
