@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { backend } from 'declarations/backend';
-import { Container, Typography, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, TextField, Button, Box, Grid, Paper, CircularProgress, AppBar, Toolbar, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, ToggleButtonGroup, ToggleButton } from '@mui/material';
+import { Container, Typography, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, TextField, Button, Box, Grid, Paper, CircularProgress, AppBar, Toolbar, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, ToggleButtonGroup, ToggleButton, Badge } from '@mui/material';
 import { Add as AddIcon, Check as CheckIcon, Delete as DeleteIcon, ShoppingCart as ShoppingCartIcon, ViewList as ViewListIcon, ViewModule as ViewModuleIcon, Apps as AppsIcon } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
+import { styled } from '@mui/system';
 
 type GroceryItem = {
   id: bigint;
@@ -23,6 +24,40 @@ type Category = {
 };
 
 type ViewType = 'list' | 'grid' | 'icon';
+
+const StyledAppBar = styled(AppBar)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  color: theme.palette.text.primary,
+  boxShadow: 'none',
+  borderBottom: `1px solid ${theme.palette.divider}`,
+}));
+
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    right: -3,
+    top: 13,
+    border: `2px solid ${theme.palette.background.paper}`,
+    padding: '0 4px',
+  },
+}));
+
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(3),
+  borderRadius: 16,
+  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+  transition: 'box-shadow 0.3s ease-in-out',
+  '&:hover': {
+    boxShadow: '0 6px 12px rgba(0, 0, 0, 0.15)',
+  },
+}));
+
+const StyledListItem = styled(ListItem)(({ theme }) => ({
+  borderRadius: 8,
+  marginBottom: theme.spacing(1),
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
+  },
+}));
 
 const AddCustomItemForm: React.FC<{ onSubmit: (data: { name: string; emoji: string }) => void; onClose: () => void }> = ({ onSubmit, onClose }) => {
   const { control, handleSubmit, reset } = useForm();
@@ -77,13 +112,13 @@ const AddCustomItemForm: React.FC<{ onSubmit: (data: { name: string; emoji: stri
 const ListView: React.FC<{ categories: Category[]; onAddItem: (item: CategoryItem) => void }> = ({ categories, onAddItem }) => (
   <>
     {categories.map((category) => (
-      <Paper key={category.name} elevation={3} sx={{ p: 2, mb: 2 }}>
+      <StyledPaper key={category.name} elevation={3} sx={{ mb: 3 }}>
         <Typography variant="h6" gutterBottom>
           {category.name}
         </Typography>
         <List>
           {category.items.map((item) => (
-            <ListItem key={Number(item.id)} disablePadding>
+            <StyledListItem key={Number(item.id)} disablePadding>
               <ListItemIcon>{item.emoji}</ListItemIcon>
               <ListItemText primary={item.name} />
               <ListItemSecondaryAction>
@@ -91,14 +126,15 @@ const ListView: React.FC<{ categories: Category[]; onAddItem: (item: CategoryIte
                   edge="end"
                   aria-label="add"
                   onClick={() => onAddItem(item)}
+                  color="primary"
                 >
                   <AddIcon />
                 </IconButton>
               </ListItemSecondaryAction>
-            </ListItem>
+            </StyledListItem>
           ))}
         </List>
-      </Paper>
+      </StyledPaper>
     ))}
   </>
 );
@@ -106,24 +142,24 @@ const ListView: React.FC<{ categories: Category[]; onAddItem: (item: CategoryIte
 const GridView: React.FC<{ categories: Category[]; onAddItem: (item: CategoryItem) => void }> = ({ categories, onAddItem }) => (
   <>
     {categories.map((category) => (
-      <Paper key={category.name} elevation={3} sx={{ p: 2, mb: 2 }}>
+      <StyledPaper key={category.name} elevation={3} sx={{ mb: 3 }}>
         <Typography variant="h6" gutterBottom>
           {category.name}
         </Typography>
         <Grid container spacing={2}>
           {category.items.map((item) => (
             <Grid item xs={6} sm={4} md={3} key={Number(item.id)}>
-              <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
+              <StyledPaper elevation={2} sx={{ p: 2, textAlign: 'center', cursor: 'pointer' }} onClick={() => onAddItem(item)}>
                 <Typography variant="h3">{item.emoji}</Typography>
                 <Typography>{item.name}</Typography>
-                <IconButton onClick={() => onAddItem(item)}>
+                <IconButton color="primary" sx={{ mt: 1 }}>
                   <AddIcon />
                 </IconButton>
-              </Paper>
+              </StyledPaper>
             </Grid>
           ))}
         </Grid>
-      </Paper>
+      </StyledPaper>
     ))}
   </>
 );
@@ -133,9 +169,9 @@ const IconView: React.FC<{ categories: Category[]; onAddItem: (item: CategoryIte
     {categories.flatMap((category) =>
       category.items.map((item) => (
         <Grid item xs={4} sm={3} md={2} key={Number(item.id)}>
-          <Paper elevation={2} sx={{ p: 2, textAlign: 'center', cursor: 'pointer' }} onClick={() => onAddItem(item)}>
+          <StyledPaper elevation={2} sx={{ p: 2, textAlign: 'center', cursor: 'pointer' }} onClick={() => onAddItem(item)}>
             <Typography variant="h3">{item.emoji}</Typography>
-          </Paper>
+          </StyledPaper>
         </Grid>
       ))
     )}
@@ -149,7 +185,7 @@ const App: React.FC = () => {
   const [openAddItemDialog, setOpenAddItemDialog] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [viewType, setViewType] = useState<ViewType>('list');
+  const [viewType, setViewType] = useState<ViewType>('grid');
 
   const fetchItems = async () => {
     try {
@@ -244,18 +280,24 @@ const App: React.FC = () => {
 
   return (
     <>
-      <AppBar position="static">
+      <StyledAppBar position="static">
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Grocery List
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+            <ShoppingCartIcon sx={{ mr: 1 }} /> Grocery List
           </Typography>
-          <Button color="inherit" onClick={() => setOpenAddItemDialog(true)}>
+          <StyledBadge badgeContent={items.length} color="secondary">
+            <ShoppingCartIcon />
+          </StyledBadge>
+          <Button color="inherit" onClick={() => setOpenAddItemDialog(true)} sx={{ ml: 2 }}>
             Add Custom Item
           </Button>
         </Toolbar>
-      </AppBar>
+      </StyledAppBar>
       <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Box sx={{ mb: 2 }}>
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h5" component="h2" sx={{ fontWeight: 600 }}>
+            Categories
+          </Typography>
           <ToggleButtonGroup
             value={viewType}
             exclusive
@@ -274,13 +316,13 @@ const App: React.FC = () => {
           </ToggleButtonGroup>
         </Box>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={8}>
             {viewType === 'list' && <ListView categories={categories} onAddItem={handleAddItemFromCategory} />}
             {viewType === 'grid' && <GridView categories={categories} onAddItem={handleAddItemFromCategory} />}
             {viewType === 'icon' && <IconView categories={categories} onAddItem={handleAddItemFromCategory} />}
           </Grid>
-          <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ p: 2 }}>
+          <Grid item xs={12} md={4}>
+            <StyledPaper elevation={3}>
               <Typography variant="h6" gutterBottom>
                 Your Grocery List
               </Typography>
@@ -291,7 +333,7 @@ const App: React.FC = () => {
               ) : (
                 <List>
                   {items.map((item) => (
-                    <ListItem
+                    <StyledListItem
                       key={Number(item.id)}
                       disablePadding
                       sx={{
@@ -306,6 +348,7 @@ const App: React.FC = () => {
                           edge="end"
                           aria-label="toggle"
                           onClick={() => toggleCompletion(item.id)}
+                          color="primary"
                         >
                           <CheckIcon />
                         </IconButton>
@@ -313,15 +356,16 @@ const App: React.FC = () => {
                           edge="end"
                           aria-label="delete"
                           onClick={() => handleRemoveItem(item.id)}
+                          color="error"
                         >
                           <DeleteIcon />
                         </IconButton>
                       </ListItemSecondaryAction>
-                    </ListItem>
+                    </StyledListItem>
                   ))}
                 </List>
               )}
-            </Paper>
+            </StyledPaper>
           </Grid>
         </Grid>
       </Container>
