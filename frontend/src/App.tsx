@@ -9,6 +9,7 @@ type GroceryItem = {
   name: string;
   emoji: string;
   completed: boolean;
+  quantity: number;
 };
 
 type CategoryItem = {
@@ -26,7 +27,7 @@ const App: React.FC = () => {
   const [items, setItems] = useState<GroceryItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const { control, handleSubmit, reset } = useForm();
+  const { control, handleSubmit, reset, watch } = useForm();
 
   const fetchItems = async () => {
     try {
@@ -53,10 +54,10 @@ const App: React.FC = () => {
     fetchCategories();
   }, []);
 
-  const onSubmit = async (data: { name: string; emoji: string }) => {
+  const onSubmit = async (data: { name: string; emoji: string; quantity: number }) => {
     setLoading(true);
     try {
-      await backend.addItem(data.name, data.emoji, []);
+      await backend.addItem(data.name, data.emoji, BigInt(data.quantity), []);
       reset();
       await fetchItems();
     } catch (error) {
@@ -78,15 +79,20 @@ const App: React.FC = () => {
     }
   };
 
-  const addItemFromCategory = async (item: CategoryItem) => {
-    setLoading(true);
-    try {
-      await backend.addItem(item.name, item.emoji, [item.id]);
-      await fetchItems();
-    } catch (error) {
-      console.error('Error adding item from category:', error);
-    } finally {
-      setLoading(false);
+  const handleAddItemFromCategory = async (item: CategoryItem, quantityFieldName: string) => {
+    const quantity = watch(quantityFieldName);
+    if (quantity && Number(quantity) > 0) {
+      setLoading(true);
+      try {
+        await backend.addItem(item.name, item.emoji, BigInt(quantity), [item.id]);
+        await fetchItems();
+      } catch (error) {
+        console.error('Error adding item from category:', error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      console.error('Invalid quantity');
     }
   };
 
@@ -139,6 +145,24 @@ const App: React.FC = () => {
                   />
                 )}
               />
+              <Controller
+                name="quantity"
+                control={control}
+                defaultValue={1}
+                rules={{ required: 'Quantity is required', min: { value: 1, message: 'Quantity must be at least 1' } }}
+                render={({ field, fieldState: { error } }) => (
+                  <TextField
+                    {...field}
+                    label="Quantity"
+                    type="number"
+                    variant="outlined"
+                    fullWidth
+                    error={!!error}
+                    helperText={error?.message}
+                    sx={{ mb: 1 }}
+                  />
+                )}
+              />
               <Button
                 type="submit"
                 variant="contained"
@@ -156,21 +180,39 @@ const App: React.FC = () => {
                 {category.name}
               </Typography>
               <List>
-                {category.items.map((item) => (
-                  <ListItem key={Number(item.id)} disablePadding>
-                    <ListItemIcon>{item.emoji}</ListItemIcon>
-                    <ListItemText primary={item.name} />
-                    <ListItemSecondaryAction>
-                      <IconButton
-                        edge="end"
-                        aria-label="add"
-                        onClick={() => addItemFromCategory(item)}
-                      >
-                        <AddIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                ))}
+                {category.items.map((item) => {
+                  const quantityFieldName = `quantity-${item.id}`;
+                  return (
+                    <ListItem key={Number(item.id)} disablePadding>
+                      <ListItemIcon>{item.emoji}</ListItemIcon>
+                      <ListItemText primary={item.name} />
+                      <ListItemSecondaryAction>
+                        <Controller
+                          name={quantityFieldName}
+                          control={control}
+                          defaultValue={1}
+                          rules={{ min: 1 }}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              type="number"
+                              variant="outlined"
+                              size="small"
+                              sx={{ width: 60, mr: 1 }}
+                            />
+                          )}
+                        />
+                        <IconButton
+                          edge="end"
+                          aria-label="add"
+                          onClick={() => handleAddItemFromCategory(item, quantityFieldName)}
+                        >
+                          <AddIcon />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  );
+                })}
               </List>
             </Paper>
           ))}
@@ -196,7 +238,7 @@ const App: React.FC = () => {
                     }}
                   >
                     <ListItemIcon>{item.emoji}</ListItemIcon>
-                    <ListItemText primary={item.name} />
+                    <ListItemText primary={`${item.name} (${item.quantity})`} />
                     <ListItemSecondaryAction>
                       <IconButton
                         edge="end"
