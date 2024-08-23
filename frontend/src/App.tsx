@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { backend } from 'declarations/backend';
-import { Container, Typography, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, TextField, Button, Box, Grid, Paper, CircularProgress, AppBar, Toolbar, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar } from '@mui/material';
-import { Add as AddIcon, Check as CheckIcon, Delete as DeleteIcon, ShoppingCart as ShoppingCartIcon } from '@mui/icons-material';
+import { Container, Typography, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, TextField, Button, Box, Grid, Paper, CircularProgress, AppBar, Toolbar, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, ToggleButtonGroup, ToggleButton } from '@mui/material';
+import { Add as AddIcon, Check as CheckIcon, Delete as DeleteIcon, ShoppingCart as ShoppingCartIcon, ViewList as ViewListIcon, ViewModule as ViewModuleIcon, Apps as AppsIcon } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 
 type GroceryItem = {
@@ -21,6 +21,8 @@ type Category = {
   name: string;
   items: CategoryItem[];
 };
+
+type ViewType = 'list' | 'grid' | 'icon';
 
 const AddCustomItemForm: React.FC<{ onSubmit: (data: { name: string; emoji: string }) => void; onClose: () => void }> = ({ onSubmit, onClose }) => {
   const { control, handleSubmit, reset } = useForm();
@@ -72,6 +74,74 @@ const AddCustomItemForm: React.FC<{ onSubmit: (data: { name: string; emoji: stri
   );
 };
 
+const ListView: React.FC<{ categories: Category[]; onAddItem: (item: CategoryItem) => void }> = ({ categories, onAddItem }) => (
+  <>
+    {categories.map((category) => (
+      <Paper key={category.name} elevation={3} sx={{ p: 2, mb: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          {category.name}
+        </Typography>
+        <List>
+          {category.items.map((item) => (
+            <ListItem key={Number(item.id)} disablePadding>
+              <ListItemIcon>{item.emoji}</ListItemIcon>
+              <ListItemText primary={item.name} />
+              <ListItemSecondaryAction>
+                <IconButton
+                  edge="end"
+                  aria-label="add"
+                  onClick={() => onAddItem(item)}
+                >
+                  <AddIcon />
+                </IconButton>
+              </ListItemSecondaryAction>
+            </ListItem>
+          ))}
+        </List>
+      </Paper>
+    ))}
+  </>
+);
+
+const GridView: React.FC<{ categories: Category[]; onAddItem: (item: CategoryItem) => void }> = ({ categories, onAddItem }) => (
+  <>
+    {categories.map((category) => (
+      <Paper key={category.name} elevation={3} sx={{ p: 2, mb: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          {category.name}
+        </Typography>
+        <Grid container spacing={2}>
+          {category.items.map((item) => (
+            <Grid item xs={6} sm={4} md={3} key={Number(item.id)}>
+              <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
+                <Typography variant="h3">{item.emoji}</Typography>
+                <Typography>{item.name}</Typography>
+                <IconButton onClick={() => onAddItem(item)}>
+                  <AddIcon />
+                </IconButton>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      </Paper>
+    ))}
+  </>
+);
+
+const IconView: React.FC<{ categories: Category[]; onAddItem: (item: CategoryItem) => void }> = ({ categories, onAddItem }) => (
+  <Grid container spacing={2}>
+    {categories.flatMap((category) =>
+      category.items.map((item) => (
+        <Grid item xs={4} sm={3} md={2} key={Number(item.id)}>
+          <Paper elevation={2} sx={{ p: 2, textAlign: 'center', cursor: 'pointer' }} onClick={() => onAddItem(item)}>
+            <Typography variant="h3">{item.emoji}</Typography>
+          </Paper>
+        </Grid>
+      ))
+    )}
+  </Grid>
+);
+
 const App: React.FC = () => {
   const [items, setItems] = useState<GroceryItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -79,6 +149,7 @@ const App: React.FC = () => {
   const [openAddItemDialog, setOpenAddItemDialog] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [viewType, setViewType] = useState<ViewType>('list');
 
   const fetchItems = async () => {
     try {
@@ -165,6 +236,12 @@ const App: React.FC = () => {
     }
   };
 
+  const handleViewChange = (event: React.MouseEvent<HTMLElement>, newView: ViewType | null) => {
+    if (newView !== null) {
+      setViewType(newView);
+    }
+  };
+
   return (
     <>
       <AppBar position="static">
@@ -178,32 +255,29 @@ const App: React.FC = () => {
         </Toolbar>
       </AppBar>
       <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Box sx={{ mb: 2 }}>
+          <ToggleButtonGroup
+            value={viewType}
+            exclusive
+            onChange={handleViewChange}
+            aria-label="view type"
+          >
+            <ToggleButton value="list" aria-label="list view">
+              <ViewListIcon />
+            </ToggleButton>
+            <ToggleButton value="grid" aria-label="grid view">
+              <ViewModuleIcon />
+            </ToggleButton>
+            <ToggleButton value="icon" aria-label="icon view">
+              <AppsIcon />
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
-            {categories.map((category) => (
-              <Paper key={category.name} elevation={3} sx={{ p: 2, mb: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  {category.name}
-                </Typography>
-                <List>
-                  {category.items.map((item) => (
-                    <ListItem key={Number(item.id)} disablePadding>
-                      <ListItemIcon>{item.emoji}</ListItemIcon>
-                      <ListItemText primary={item.name} />
-                      <ListItemSecondaryAction>
-                        <IconButton
-                          edge="end"
-                          aria-label="add"
-                          onClick={() => handleAddItemFromCategory(item)}
-                        >
-                          <AddIcon />
-                        </IconButton>
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  ))}
-                </List>
-              </Paper>
-            ))}
+            {viewType === 'list' && <ListView categories={categories} onAddItem={handleAddItemFromCategory} />}
+            {viewType === 'grid' && <GridView categories={categories} onAddItem={handleAddItemFromCategory} />}
+            {viewType === 'icon' && <IconView categories={categories} onAddItem={handleAddItemFromCategory} />}
           </Grid>
           <Grid item xs={12} md={6}>
             <Paper elevation={3} sx={{ p: 2 }}>
