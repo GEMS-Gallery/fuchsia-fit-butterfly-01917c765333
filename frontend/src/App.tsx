@@ -193,6 +193,8 @@ const App: React.FC = () => {
       setItems(result);
     } catch (error) {
       console.error('Error fetching items:', error);
+      setSnackbarMessage('Error fetching items. Please try again.');
+      setSnackbarOpen(true);
     } finally {
       setLoading(false);
     }
@@ -204,6 +206,8 @@ const App: React.FC = () => {
       setCategories(result);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setSnackbarMessage('Error fetching categories. Please try again.');
+      setSnackbarOpen(true);
     }
   };
 
@@ -221,7 +225,7 @@ const App: React.FC = () => {
       setSnackbarOpen(true);
     } catch (error) {
       console.error('Error adding item:', error);
-      setSnackbarMessage('Error adding item');
+      setSnackbarMessage('Error adding item. Please try again.');
       setSnackbarOpen(true);
     } finally {
       setLoading(false);
@@ -235,6 +239,8 @@ const App: React.FC = () => {
       await fetchItems();
     } catch (error) {
       console.error('Error toggling item completion:', error);
+      setSnackbarMessage('Error updating item. Please try again.');
+      setSnackbarOpen(true);
     } finally {
       setLoading(false);
     }
@@ -249,7 +255,7 @@ const App: React.FC = () => {
       setSnackbarOpen(true);
     } catch (error) {
       console.error('Error adding item from category:', error);
-      setSnackbarMessage('Error adding item');
+      setSnackbarMessage('Error adding item. Please try again.');
       setSnackbarOpen(true);
     } finally {
       setLoading(false);
@@ -265,7 +271,7 @@ const App: React.FC = () => {
       setSnackbarOpen(true);
     } catch (error) {
       console.error('Error removing item:', error);
-      setSnackbarMessage('Error removing item');
+      setSnackbarMessage('Error removing item. Please try again.');
       setSnackbarOpen(true);
     } finally {
       setLoading(false);
