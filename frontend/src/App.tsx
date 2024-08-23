@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { backend } from 'declarations/backend';
-import { Container, Typography, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, TextField, Button, Box, Grid, Paper, CircularProgress } from '@mui/material';
+import { Container, Typography, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, TextField, Button, Box, Grid, Paper, CircularProgress, AppBar, Toolbar, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { Add as AddIcon, Check as CheckIcon, ShoppingCart as ShoppingCartIcon } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 
@@ -22,11 +22,61 @@ type Category = {
   items: CategoryItem[];
 };
 
+const AddCustomItemForm: React.FC<{ onSubmit: (data: { name: string; emoji: string }) => void; onClose: () => void }> = ({ onSubmit, onClose }) => {
+  const { control, handleSubmit, reset } = useForm();
+
+  const handleFormSubmit = (data: { name: string; emoji: string }) => {
+    onSubmit(data);
+    reset();
+    onClose();
+  };
+
+  return (
+    <Box component="form" onSubmit={handleSubmit(handleFormSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Controller
+        name="name"
+        control={control}
+        defaultValue=""
+        rules={{ required: 'Item name is required' }}
+        render={({ field, fieldState: { error } }) => (
+          <TextField
+            {...field}
+            label="Item Name"
+            variant="outlined"
+            fullWidth
+            error={!!error}
+            helperText={error?.message}
+          />
+        )}
+      />
+      <Controller
+        name="emoji"
+        control={control}
+        defaultValue=""
+        rules={{ required: 'Emoji is required' }}
+        render={({ field, fieldState: { error } }) => (
+          <TextField
+            {...field}
+            label="Emoji"
+            variant="outlined"
+            fullWidth
+            error={!!error}
+            helperText={error?.message}
+          />
+        )}
+      />
+      <Button type="submit" variant="contained" color="primary" startIcon={<AddIcon />}>
+        Add Item
+      </Button>
+    </Box>
+  );
+};
+
 const App: React.FC = () => {
   const [items, setItems] = useState<GroceryItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const { control, handleSubmit, reset } = useForm();
+  const [openAddItemDialog, setOpenAddItemDialog] = useState(false);
 
   const fetchItems = async () => {
     try {
@@ -57,7 +107,6 @@ const App: React.FC = () => {
     setLoading(true);
     try {
       await backend.addItem(data.name, data.emoji, []);
-      reset();
       await fetchItems();
     } catch (error) {
       console.error('Error adding item:', error);
@@ -91,129 +140,91 @@ const App: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="md">
-      <Box display="flex" alignItems="center" mb={2}>
-        <ShoppingCartIcon sx={{ mr: 1 }} />
-        <Typography variant="h4" component="h1">
-          Grocery List
-        </Typography>
-      </Box>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Add Custom Item
-            </Typography>
-            <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mb: 2 }}>
-              <Controller
-                name="name"
-                control={control}
-                defaultValue=""
-                rules={{ required: 'Item name is required' }}
-                render={({ field, fieldState: { error } }) => (
-                  <TextField
-                    {...field}
-                    label="Item Name"
-                    variant="outlined"
-                    fullWidth
-                    error={!!error}
-                    helperText={error?.message}
-                    sx={{ mb: 1 }}
-                  />
-                )}
-              />
-              <Controller
-                name="emoji"
-                control={control}
-                defaultValue=""
-                rules={{ required: 'Emoji is required' }}
-                render={({ field, fieldState: { error } }) => (
-                  <TextField
-                    {...field}
-                    label="Emoji"
-                    variant="outlined"
-                    fullWidth
-                    error={!!error}
-                    helperText={error?.message}
-                    sx={{ mb: 1 }}
-                  />
-                )}
-              />
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                fullWidth
-              >
-                Add Item
-              </Button>
-            </Box>
-          </Paper>
-          {categories.map((category) => (
-            <Paper key={category.name} elevation={3} sx={{ p: 2, mb: 2 }}>
+    <>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            Grocery List
+          </Typography>
+          <Button color="inherit" onClick={() => setOpenAddItemDialog(true)}>
+            Add Custom Item
+          </Button>
+        </Toolbar>
+      </AppBar>
+      <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            {categories.map((category) => (
+              <Paper key={category.name} elevation={3} sx={{ p: 2, mb: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  {category.name}
+                </Typography>
+                <List>
+                  {category.items.map((item) => (
+                    <ListItem key={Number(item.id)} disablePadding>
+                      <ListItemIcon>{item.emoji}</ListItemIcon>
+                      <ListItemText primary={item.name} />
+                      <ListItemSecondaryAction>
+                        <IconButton
+                          edge="end"
+                          aria-label="add"
+                          onClick={() => handleAddItemFromCategory(item)}
+                        >
+                          <AddIcon />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  ))}
+                </List>
+              </Paper>
+            ))}
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Paper elevation={3} sx={{ p: 2 }}>
               <Typography variant="h6" gutterBottom>
-                {category.name}
+                Your Grocery List
               </Typography>
-              <List>
-                {category.items.map((item) => (
-                  <ListItem key={Number(item.id)} disablePadding>
-                    <ListItemIcon>{item.emoji}</ListItemIcon>
-                    <ListItemText primary={item.name} />
-                    <ListItemSecondaryAction>
-                      <IconButton
-                        edge="end"
-                        aria-label="add"
-                        onClick={() => handleAddItemFromCategory(item)}
-                      >
-                        <AddIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                ))}
-              </List>
+              {loading ? (
+                <Box display="flex" justifyContent="center" alignItems="center" height={200}>
+                  <CircularProgress />
+                </Box>
+              ) : (
+                <List>
+                  {items.map((item) => (
+                    <ListItem
+                      key={Number(item.id)}
+                      disablePadding
+                      sx={{
+                        textDecoration: item.completed ? 'line-through' : 'none',
+                        opacity: item.completed ? 0.5 : 1,
+                      }}
+                    >
+                      <ListItemIcon>{item.emoji}</ListItemIcon>
+                      <ListItemText primary={item.name} />
+                      <ListItemSecondaryAction>
+                        <IconButton
+                          edge="end"
+                          aria-label="toggle"
+                          onClick={() => toggleCompletion(item.id)}
+                        >
+                          <CheckIcon />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  ))}
+                </List>
+              )}
             </Paper>
-          ))}
+          </Grid>
         </Grid>
-        <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Your Grocery List
-            </Typography>
-            {loading ? (
-              <Box display="flex" justifyContent="center" alignItems="center" height={200}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              <List>
-                {items.map((item) => (
-                  <ListItem
-                    key={Number(item.id)}
-                    disablePadding
-                    sx={{
-                      textDecoration: item.completed ? 'line-through' : 'none',
-                      opacity: item.completed ? 0.5 : 1,
-                    }}
-                  >
-                    <ListItemIcon>{item.emoji}</ListItemIcon>
-                    <ListItemText primary={item.name} />
-                    <ListItemSecondaryAction>
-                      <IconButton
-                        edge="end"
-                        aria-label="toggle"
-                        onClick={() => toggleCompletion(item.id)}
-                      >
-                        <CheckIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                ))}
-              </List>
-            )}
-          </Paper>
-        </Grid>
-      </Grid>
-    </Container>
+      </Container>
+      <Dialog open={openAddItemDialog} onClose={() => setOpenAddItemDialog(false)}>
+        <DialogTitle>Add Custom Item</DialogTitle>
+        <DialogContent>
+          <AddCustomItemForm onSubmit={onSubmit} onClose={() => setOpenAddItemDialog(false)} />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
