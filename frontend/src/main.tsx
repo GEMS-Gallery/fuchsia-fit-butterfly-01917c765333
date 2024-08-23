@@ -13,6 +13,12 @@ const theme = createTheme({
     secondary: {
       main: '#4CAF50',
     },
+    success: {
+      main: '#4CAF50',
+    },
+    error: {
+      main: '#F44336',
+    },
     background: {
       default: '#F5F5F5',
     },

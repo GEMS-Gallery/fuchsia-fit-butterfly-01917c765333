@@ -126,7 +126,7 @@ const ListView: React.FC<{ categories: Category[]; onAddItem: (item: CategoryIte
                   edge="end"
                   aria-label="add"
                   onClick={() => onAddItem(item)}
-                  color="primary"
+                  color="success"
                 >
                   <AddIcon />
                 </IconButton>
@@ -152,7 +152,7 @@ const GridView: React.FC<{ categories: Category[]; onAddItem: (item: CategoryIte
               <StyledPaper elevation={2} sx={{ p: 2, textAlign: 'center', cursor: 'pointer' }} onClick={() => onAddItem(item)}>
                 <Typography variant="h3">{item.emoji}</Typography>
                 <Typography>{item.name}</Typography>
-                <IconButton color="primary" sx={{ mt: 1 }}>
+                <IconButton color="success" sx={{ mt: 1 }}>
                   <AddIcon />
                 </IconButton>
               </StyledPaper>
@@ -348,7 +348,7 @@ const App: React.FC = () => {
                           edge="end"
                           aria-label="toggle"
                           onClick={() => toggleCompletion(item.id)}
-                          color="primary"
+                          color="success"
                         >
                           <CheckIcon />
                         </IconButton>
