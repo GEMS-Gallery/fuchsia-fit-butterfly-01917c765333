@@ -154,6 +154,17 @@ actor {
     }
   };
 
+  public func removeItem(id: Nat) : async Result.Result<(), Text> {
+    switch (groceryList.remove(id)) {
+      case (null) {
+        #err("Item not found")
+      };
+      case (?_) {
+        #ok()
+      };
+    }
+  };
+
   public query func getItems() : async [GroceryItem] {
     Iter.toArray(Iter.map(groceryList.entries(), func (entry : (Nat, GroceryItem)) : GroceryItem { entry.1 }))
   };

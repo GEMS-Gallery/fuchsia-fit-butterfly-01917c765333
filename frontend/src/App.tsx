@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { backend } from 'declarations/backend';
-import { Container, Typography, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, TextField, Button, Box, Grid, Paper, CircularProgress, AppBar, Toolbar, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
-import { Add as AddIcon, Check as CheckIcon, ShoppingCart as ShoppingCartIcon } from '@mui/icons-material';
+import { Container, Typography, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, TextField, Button, Box, Grid, Paper, CircularProgress, AppBar, Toolbar, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar } from '@mui/material';
+import { Add as AddIcon, Check as CheckIcon, Delete as DeleteIcon, ShoppingCart as ShoppingCartIcon } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 
 type GroceryItem = {
@@ -77,6 +77,8 @@ const App: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [openAddItemDialog, setOpenAddItemDialog] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   const fetchItems = async () => {
     try {
@@ -108,8 +110,12 @@ const App: React.FC = () => {
     try {
       await backend.addItem(data.name, data.emoji, []);
       await fetchItems();
+      setSnackbarMessage('Item added successfully');
+      setSnackbarOpen(true);
     } catch (error) {
       console.error('Error adding item:', error);
+      setSnackbarMessage('Error adding item');
+      setSnackbarOpen(true);
     } finally {
       setLoading(false);
     }
@@ -132,8 +138,28 @@ const App: React.FC = () => {
     try {
       await backend.addItem(item.name, item.emoji, [item.id]);
       await fetchItems();
+      setSnackbarMessage('Item added successfully');
+      setSnackbarOpen(true);
     } catch (error) {
       console.error('Error adding item from category:', error);
+      setSnackbarMessage('Error adding item');
+      setSnackbarOpen(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemoveItem = async (id: bigint) => {
+    setLoading(true);
+    try {
+      await backend.removeItem(id);
+      await fetchItems();
+      setSnackbarMessage('Item removed successfully');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Error removing item:', error);
+      setSnackbarMessage('Error removing item');
+      setSnackbarOpen(true);
     } finally {
       setLoading(false);
     }
@@ -209,6 +235,13 @@ const App: React.FC = () => {
                         >
                           <CheckIcon />
                         </IconButton>
+                        <IconButton
+                          edge="end"
+                          aria-label="delete"
+                          onClick={() => handleRemoveItem(item.id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
                       </ListItemSecondaryAction>
                     </ListItem>
                   ))}
@@ -224,6 +257,12 @@ const App: React.FC = () => {
           <AddCustomItemForm onSubmit={onSubmit} onClose={() => setOpenAddItemDialog(false)} />
         </DialogContent>
       </Dialog>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        message={snackbarMessage}
+      />
     </>
   );
 };

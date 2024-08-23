@@ -30,5 +30,6 @@ service : {
   addItem: (text, text, opt nat) -> (Result_1);
   getCategories: () -> (vec Category) query;
   getItems: () -> (vec GroceryItem) query;
+  removeItem: (nat) -> (Result);
   toggleItemCompletion: (nat) -> (Result);
 }

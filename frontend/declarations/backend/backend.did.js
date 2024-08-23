@@ -24,6 +24,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getCategories' : IDL.Func([], [IDL.Vec(Category)], ['query']),
     'getItems' : IDL.Func([], [IDL.Vec(GroceryItem)], ['query']),
+    'removeItem' : IDL.Func([IDL.Nat], [Result], []),
     'toggleItemCompletion' : IDL.Func([IDL.Nat], [Result], []),
   });
 };
